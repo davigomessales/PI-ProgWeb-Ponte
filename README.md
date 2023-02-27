@@ -7,3 +7,6 @@ Projeto Integrador - Andamento
  
  Projeto Integrador Programador Web - Ponte 2022/2023
  https://docs.google.com/document/d/1fbXw3dj1nPY4z_kOIAfgQbSoPDhtCdfN5Th_buxA98Y/edit?usp=sharing
+
+Slides da Apresentação
+https://docs.google.com/presentation/d/1OS54MXHqamQYKMpHa8dx3sTeAMJvk7uxY2KEGpisS88/edit?usp=sharing
