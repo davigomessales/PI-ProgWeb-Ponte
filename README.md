@@ -10,3 +10,7 @@ Projeto Integrador - Andamento
 
 Slides da Apresentação
 https://docs.google.com/presentation/d/1OS54MXHqamQYKMpHa8dx3sTeAMJvk7uxY2KEGpisS88/edit?usp=sharing
+
+Comando para rodar o back
+Na pasta do back, rodar o seguinte comando no git Bash
+$ json-server db.json -m ./node_modules/json-server-auth
