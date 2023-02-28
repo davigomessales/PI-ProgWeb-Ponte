@@ -108,7 +108,7 @@ const clearSignUpFields = () => {
     residuosList = [];
     depositosList = [];
 }
-
+planosList
 const addFreeItemCart = () => {
     document.getElementsByClassName('list-group')[0].innerHTML = `<li class="list-group-item d-flex justify-content-between lh-sm">
     <div>
@@ -138,13 +138,32 @@ const addPremiumItemCart = () => {
 }
 
 const getPersonalInfo = () => {
-    planoAtual = planosList.filter(element => element.id === idTipoAssinatura)
-    console.log(idTipoAssinatura)
-    console.log(planosList)
-    console.log(planoAtual)
-    document.getElementById('greeting').innerHTML = `Olá ${pessoa.firstName.toUpperCase()}`
-    document.getElementById('pontuacaoAtual').innerHTML = `Sua pontuação atual é de: ${pontuacaoAtual}`
-    document.getElementById('planoAtual').innerHTML = `Sua assinatura é: ${planoAtual.nome.toUpperCase()}`
+   getPontuacao()
+}
+
+const getPontuacao = () => {
+    let peso = 0;
+    let pesoPorResiduo = [];
+    console.log(residuosList)
+    if (planosList.length > 0){
+        planoAtual = planosList.filter(plano => pessoa.idTipoAssinatura === plano.id)
+    }
+    if (depositosList.length > 0) {
+        pesoPorResiduo = depositosList.map(deposito => {
+            return (deposito.peso/1000) * residuosList[deposito.idResiduo - 1].pontosPorQuilo
+        })
+    }
+    if (pesoPorResiduo.length > 0) {
+        pesoPorResiduo.forEach(el => {
+            peso = peso + el
+        })
+        pontuacaoAtual = peso * planoAtual[0].fatorPlano
+    }
+    if (pessoa && pontuacaoAtual && planoAtual){
+        document.getElementById('greeting').innerHTML = `Olá ${pessoa.firstName.toUpperCase()}`
+        document.getElementById('pontuacaoAtual').innerHTML = `Sua pontuação atual é de: ${pontuacaoAtual}`
+        document.getElementById('planoAtual').innerHTML = `Sua assinatura é: ${planoAtual[0].nome.toUpperCase()}`
+    }
 }
 
 const sendData = (event) => {
@@ -182,7 +201,8 @@ const sendDataLogin = () => {
             pessoa = json.user;
             getResiduos();
             getPlanos();
-            getPersonalInfo()
+            getDepositos();
+            
         } else {
             showLogged(false)
             alert(`Erro: ${json}`)
@@ -242,8 +262,34 @@ const getPlanos = () => {
     }).then((json) => {
         if (isOk) {
             if(json.length > 0) {
-                generateTable(tableDepositos, json)
-                generateTableHead(tableDepositos, json)
+                planosList = json;
+                // generateTable(tableDepositos, json)
+                // generateTableHead(tableDepositos, json)
+            }
+        } else {
+            alert(json)
+        }
+    })
+}
+const getDepositos = () => {
+    fetch(urlBase + '/depositos', {
+        method: 'GET',
+    }).then((res) => {
+        isOk = res.ok;
+        return res.json()
+    }).then((json) => {
+        if (isOk) {
+            if(json.length > 0) {
+                const data = []
+                json.filter(deposito => {
+                    if (deposito.idUser === pessoa.id){
+                        data.push(deposito)
+                    }
+                })
+                depositosList = data;
+                getPersonalInfo()
+                generateTable(tableDepositos, data)
+                generateTableHead(tableDepositos, data)
             }
         } else {
             alert(json)
@@ -260,6 +306,7 @@ const getResiduos = () => {
     }).then((json) => {
         if (isOk) {
             if(json.length > 0) {
+                residuosList = json
                 generateTable(tableResiduos, json)
                 generateTableHead(tableResiduos, json)
             }
@@ -274,21 +321,29 @@ const generateTableHead = (table, values) => {
     let thead = table.createTHead();
     let row = thead.insertRow();
     for (let key of data) {
-        console.log(key)
-        let th = document.createElement('th');
-        th.scope = "col"
-        let text = document.createTextNode(key);
-        th.appendChild(text)
-        row.appendChild(th);
+        if (key !== 'id' && key !== 'idUser') {
+            let th = document.createElement('th');
+            th.scope = "col"
+            let text = document.createTextNode(key);
+            th.appendChild(text)
+            row.appendChild(th);
+        }
     }
 }
 const generateTable = (table, data) => {
     for (let element of data){
         let row = table.insertRow()
         for(key in element){
-            let cell = row.insertCell()
-            let text = document.createTextNode(element[key])
-            cell.appendChild(text);
+            if (key !== 'id' && key !== 'idUser') {
+                let cell = row.insertCell()
+                if (key === 'idResiduo'){
+                    let text = document.createTextNode(residuosList[element[key] - 1].nomeResiduo)
+                    cell.appendChild(text);
+                } else {
+                    let text = document.createTextNode(element[key])
+                    cell.appendChild(text);
+                }
+            }
         }
     }
 }
@@ -306,6 +361,8 @@ heroLateralSignInButton.addEventListener('click', () => {
     bringToTop()
     showMainContent(true);
     signInSection.hidden = false;
+    checkoutSection.hidden = true;
+    resetForm('sign-up-form');
 })
 
 signInVoltarButton.addEventListener('click', () => {
